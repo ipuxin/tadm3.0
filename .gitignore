@@ -1,7 +1,10 @@
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
-
+#不上传以下三个文件夹
+data/
+system/
+ueditor/
 # Folder config file
 Desktop.ini
 
