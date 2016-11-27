@@ -72,7 +72,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </line>
         <line>
             <span class="title">已转账金额：</span>
-            <input type="text" name="AmountReal" disabled style="color:#999;"
+            <input type="text" name="AmountReal" readonly style="color:#999;cursor: not-allowed;"
                    value="<?php
                    //除类型为：店铺，外，城市合伙人（加盟商）、门店商，提现均不收取手续费
                    if ($info['UserType'] == '店铺') {
