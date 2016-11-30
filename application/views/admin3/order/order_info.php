@@ -200,7 +200,7 @@ td{width:50%;}
 			<line>
 				<span class="title"></span>
 				<input type="reset">
-				<button>保存</button>
+				<button>确定发货</button>
 			</line>
 			<div class="kuaidiInfo tab-box" style="margin-bottom:12px;margin-top:0;display:none"><span class="sel">快递信息</span></div>
 			<line class="kuaidiClu"></line>

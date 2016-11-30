@@ -23,7 +23,7 @@ class Shop_model extends MY_Model
         parent::init();
         $this->_admin_prefix = $this->config->item('shop_admin_prefix');
         $this->_admin_password = $this->config->item('shop_admin_password');
-        $this->setTable('Shop');
+        $this->setTable('Shop_Balance');
 
         $IsDisableArr = array(
             0 => '启用',

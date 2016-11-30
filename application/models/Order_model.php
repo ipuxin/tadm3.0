@@ -84,11 +84,11 @@ class Order_model extends MY_Model {
 //打印日志函数--ci
     function logResultMy($word = '')
     {
-        $dir = $this->config->item('data_log_path') . 'Order_model_My';
+        $dir = $this->config->item('data_log_path') . 'MyOrderModel';
         if (!file_exists($dir)) {
             mkdir($dir, '0777', true);
         }
-        $fileName = $dir . '/' . 'Order_model_My' . '.txt';
+        $fileName = $dir . '/' . 'MyOrderModel' . '.txt';
         $fp = fopen($fileName, "a");
         flock($fp, LOCK_EX);
         fwrite($fp, "执行日期：" . strftime("%Y-%m-%d~%H:%M:%S", time()) . "\r\n" . $word . "\r\n");
@@ -96,8 +96,14 @@ class Order_model extends MY_Model {
         fclose($fp);
     }
 
+    //如果确认收货超过5天,不能退款
 	function refundOrder($orderId,$refund_fee = ''){
 		$order = $this->getOrderInfo($orderId);
+
+        $RealReceiptTime = $order['RealReceiptTime'];
+//            $timeDelay = 5*24*3600;//5天
+        $timeDelay = 5*60;
+        $endTime = $RealReceiptTime + $timeDelay;
 
 		if($order['PayType']=='微信'){
 			include_once(APPPATH."controllers/WxRefund/WxPay.Api.php");

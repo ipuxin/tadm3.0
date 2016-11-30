@@ -31,13 +31,28 @@ class Tixian extends MY_Controller
     }
 
     //审核提现
-
+    // $this->logResultmy('---shop-out-begin---');
+    //$this->logResultmy(json_encode($arr));
     public function updTixian()
     {
         extract($this->input->post());
 
+        $this->logResultmy('---shop-out-begin-input->post()---');
+        $this->logResultmy(json_encode($this->input->post()));
+
         $this->checkPurview('tixianUpd');
         $this->load->model('yue_tixian_model');
+
+        /*
+         *post {
+            "id": "583a5893a090421020fa27d7",
+            "Amount": "2",
+            "Account": "zhifubaoaccount0019",
+            "AccountType": "支付宝",
+            "AmountReal": "1.92",
+            "OrderId": ""
+        }
+        */
 
         //根据订单编号，找到UserId
         $yueTX = $this->yue_tixian_model->getTxRow($id);
@@ -111,6 +126,28 @@ class Tixian extends MY_Controller
             $arr['AccountName'] = $admin['ZhifubaoKaihu'];
         }
 
+        /**
+         * {
+         * "Tixian": {
+         * "id": "5836b0b1a09042d0ccbd1de2",
+         * "UserId": "58354d73a0904243c86938f7",
+         * "Type": "申请提现",
+         * "Account": "zhifubaoaccount0019",
+         * "AccountType": "支付宝",
+         * "Amount": 1,
+         * "AmountReal": 0,
+         * "OrderId": "",
+         * "CreatTime": 1479979185,
+         * "UpdateTime": "",
+         * "totalBalanceReal": 1,
+         * "UserType": "店铺",
+         * "UserMobile": "18039208926",
+         * "UserRealName": "test999",
+         * "UserShowName": "shopname9999",
+         * "AccountName": ""
+         * }
+         * }
+         */
         //列表显示的手续费
         $AmountCharge = 0;
 
@@ -121,6 +158,10 @@ class Tixian extends MY_Controller
             $arr = array('totalBalanceReal+' => $AmountReal);
             $res = $this->shop_model->updShop($arr, $ShopRealId);
 
+            $this->logResultmy('---shop-update---');
+            $this->logResultmy(json_encode($arr));
+            $this->logResultmy(json_encode($res));
+
         } elseif ($UserType == 2) {
             //更新合伙人的表
             $arr = array('totalBalanceReal+' => $AmountReal);
@@ -129,11 +170,17 @@ class Tixian extends MY_Controller
             //更新门店商
             $arr = array('totalBalanceReal+' => $AmountReal);
             $res = $this->admin_model->updUser($arr, $UserId);
+
+            $this->logResultmy('---updateMenDian-res---');
+            $this->logResultmy(json_encode($res));
         }
+
+        $this->logResultmy('---begin-res---');
+        $this->logResultmy(json_encode($res));
 
         $arrOld = array(
             'AmountReal' => $AmountReal,
-            'OrderId' => $OrderId,
+            'OrderId' => $id,
             'AmountCharge' => $AmountCharge,   //手续费
             'UpdateTime' => time()
         );
@@ -145,6 +192,12 @@ class Tixian extends MY_Controller
         $res = $this->yue_tixian_model->updTixian($arrOld, $id);
 
         $this->returnJson($res);
+
+        $this->logResultmy('---end-res---');
+        $this->logResultmy(json_encode($res));
+
+        $this->logResultmy('---end-arrOld---');
+        $this->logResultmy(json_encode($arrOld));
     }
 
 //打印日志函数--ci
@@ -165,7 +218,16 @@ class Tixian extends MY_Controller
     //接受用户提交的提现申请-表单
     public function addTixian()
     {
+        $this->logResultmy('---admin_UserType---');
+
+        //{"Amount":"1"}
         extract($this->input->post());
+
+        $this->logResultmy('---Amount---');
+        $this->logResultmy(json_encode($Amount));
+
+        $this->logResultmy('---this->_UserId---');
+        $this->logResultmy(json_encode($this->_UserId));
 
         if (!is_numeric($Amount)) {
             return;
@@ -173,9 +235,32 @@ class Tixian extends MY_Controller
         if (!$this->_UserId) {
             return;
         }
-        $Amount = round($Amount, 4);
-
+        $Amount = intval($Amount);
+        /**
+         * $admin{
+         * "id": "58354d73a0904243c86938f7",
+         * "Account": "18039208926",
+         * "Address": "dzzhifubaoaccount00199",
+         * "CityCode": 110100,
+         * "CityName": "北京市",
+         * "IsDisable": 0,
+         * "Mobile": "18039208926",
+         * "Password": "698d51a19d8a121ce581499d7b701668",
+         * "RealName": "test999",
+         * "ShopId": 310,
+         * "ShopName": "shopname9999",
+         * "ShopRealId": "58354d73a0904243c86938f6",
+         * "UserType": 3,
+         * "Username": "shopname9999",
+         * "ZhifubaoAccount": "",
+         * "CreatDate": 1479888243,
+         * "IsDisableShow": "启用"
+         * }
+         */
         $admin = $this->admin_model->getAdmin($this->_UserId);
+
+        $this->logResultmy('---admin---');
+        $this->logResultmy(json_encode($admin));
 
         //检测是否在admin表中
         if (!$admin['Admin']) {
@@ -205,6 +290,12 @@ class Tixian extends MY_Controller
             $Balance = $admin['BalanceReal'] - $admin['totalBalanceApply'];
             $ZhifubaoAccount = $admin['ZhifubaoAccount'];
         }
+
+        $this->logResultmy('---Amount---');
+        $this->logResultmy(json_encode($Amount));
+
+        $this->logResultmy('---Balance---');
+        $this->logResultmy(json_encode($Balance));
 
         if ($Amount > $Balance) {
             return;
@@ -246,24 +337,90 @@ class Tixian extends MY_Controller
         $res = $this->yue_tixian_model->addTixian($arr);
         $this->returnJson($res);
 
+        //{"UserId":"58354d73a0904243c86938f7","Type":"\u7533\u8bf7\u63d0\u73b0","Account":"zhifubaoaccount0019","AccountType":"\u652f\u4ed8\u5b9d","Amount":1,"AmountReal":0,"OrderId":"","CreatTime":1480042715,"UpdateTime":"","UserType":"\u5e97\u94fa","UserMobile":"18039208926","UserRealName":"test999","UserShowName":"shopname9999","AccountName":null}
+        $this->logResultmy('---arr---');
+        $this->logResultmy(json_encode($arr));
+////{"Tixian":{"id":"5837a8dba090420e4c7813c7","UserId":"58354d73a0904243c86938f7","Type":"\u7533\u8bf7\u63d0\u73b0","Account":"zhifubaoaccount0019","AccountType":"\u652f\u4ed8\u5b9d","Amount":1,"AmountReal":0,"OrderId":"","CreatTime":1480042715,"UpdateTime":"","UserType":"\u5e97\u94fa","UserMobile":"18039208926","UserRealName":"test999","UserShowName":"shopname9999","AccountName":""}}
+//        $this->logResultmy('---this->yue_tixian_model->addTixian---');
+//        $this->logResultmy(json_encode($res));
+
+        $this->logResultmy('---shop-out---');
+        $this->logResultmy(json_encode($this->session->userdata('UserType')));
+        $this->logResultmy(json_encode($res));
+
         //提交成功
         if (!$res['ErrorCode']) {
+            /**
+             * {
+             * "Tixian": {
+             * "id": "5836b0b1a09042d0ccbd1de2",
+             * "UserId": "58354d73a0904243c86938f7",
+             * "Type": "申请提现",
+             * "Account": "zhifubaoaccount0019",
+             * "AccountType": "支付宝",
+             * "Amount": 1,
+             * "AmountReal": 0,
+             * "OrderId": "",
+             * "CreatTime": 1479979185,
+             * "UpdateTime": "",
+             * "totalBalanceReal": 1,
+             * "UserType": "店铺",
+             * "UserMobile": "18039208926",
+             * "UserRealName": "test999",
+             * "UserShowName": "shopname9999",
+             * "AccountName": ""
+             * }
+             * }
+             */
             if ($this->session->userdata('UserType') == 3) {
+                /*$arr = array(
+                    'Balance-' => $Amount,
+                    'BalanceReal-' =>  $Amount
+                );
+                $this->shop_model->updShop($arr,$this->_ShopRealId);*/
 
                 //更新商铺的shop表
                 $arr = array('totalBalanceApply+' => $Amount);
-                $this->shop_model->updShop($arr, $this->_ShopRealId);
+                $this->logResultmy('---shop-out-begin---');
+                $this->logResultmy(json_encode($arr));
+                $shop = $this->shop_model->updShop($arr, $this->_ShopRealId);
 
+                $this->logResultmy('---shop-in---');
+                $this->logResultmy(json_encode($arr));
+                $this->logResultmy(json_encode($shop));
+
+//                $this->load->model('shop_balance_model');
+//                $this->shop_balance_model->Tixianmy($shop, $Amount);
+//                $this->shop_balance_model->Tixianmy($shop, $Amount, 1);
             } elseif ($this->session->userdata('UserType') == 2) {
 
                 //更新城市合伙人的Admin表
                 $arr = array('totalBalanceApply+' => $Amount);
-                $this->admin_model->updUser($arr, $this->_UserId);
+                $shop = $this->admin_model->updUser($arr, $this->_UserId);
+
+                $this->logResultmy('---admin-City-in---');
+                $this->logResultmy(json_encode($arr));
+                $this->logResultmy(json_encode($shop));
             } elseif ($this->session->userdata('UserType') == 4) {
+                /*$arr = array(
+                    'Balance-' => $Amount,
+                    'BalanceReal-' =>  $Amount
+                );
+                $this->shop_model->updShop($arr,$this->_ShopRealId);*/
 
                 //更新门店商的Admin表
                 $arr = array('totalBalanceApply+' => $Amount);
-                $this->admin_model->updUser($arr, $this->_UserId);
+                $this->logResultmy('---shop-admin_model-begin---');
+                $this->logResultmy(json_encode($arr));
+                $shop = $this->admin_model->updUser($arr, $this->_UserId);
+
+                $this->logResultmy('---admin_model-in---');
+                $this->logResultmy(json_encode($arr));
+                $this->logResultmy(json_encode($shop));
+
+//                $this->load->model('shop_balance_model');
+//                $this->shop_balance_model->Tixianmy($shop, $Amount);
+//                $this->shop_balance_model->Tixianmy($shop, $Amount, 1);
             }
         }
     }

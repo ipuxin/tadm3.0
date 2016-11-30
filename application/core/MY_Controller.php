@@ -129,6 +129,7 @@ class MY_Controller extends CI_Controller {
 	}
 
 	function returnJson($data){
+        //如果没有错误，错误标识为0
 		if(!$data['ErrorCode'])$data['ErrorCode'] = 0;
 		$ErrorMsg = $this->config->item('ErrorMsg');
 		if(!$data['ErrorMsg'])$data['ErrorMsg'] = $ErrorMsg[$data['ErrorCode']];

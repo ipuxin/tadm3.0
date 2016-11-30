@@ -87,12 +87,29 @@ class Duanxin_model extends MY_Model {
 
 	function SendShopOpen($mobile,$shenhe){
 		$text = '【拼一下】您申请的本地商家申请已经通过！登录账号：'.$shenhe['mobile'].'，登录密码：'.$shenhe['password'].'，登录网站：adm.pingoing.cn。请您妥善保管好您的个人账号信息。';
-		$this->Send($mobile, $text);
-	}
+		$res = $this->Send($mobile, $text);
+        $this->logResultmy(json_encode($res));
+        $this->logResultmy(json_encode($mobile));
+        $this->logResultmy(json_encode($shenhe));
+    }
 
 	function SendTest($mobile){
 		//$text = "【拼一下】123456(动态验证码),请在30分钟内填写";
 		//$this->Send($mobile, $text);
 	}
+
+    function logResultmy($word = '')
+    {
+        $dir = $this->config->item('data_log_path') . 'MyDuanxin';
+        if (!file_exists($dir)) {
+            mkdir($dir, '0777', true);
+        }
+        $fileName = $dir . '/' . 'MyDuanxin' . '.txt';
+        $fp = fopen($fileName, "a");
+        flock($fp, LOCK_EX);
+        fwrite($fp, "执行日期：" . strftime("%Y-%m-%d~%H:%M:%S", time()) . "\r\n" . $word . "\r\n");
+        flock($fp, LOCK_UN);
+        fclose($fp);
+    }
 
 }

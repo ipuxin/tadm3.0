@@ -9,9 +9,31 @@ class Order extends MY_Controller {
 		$this->load->model('order_model');
 	}
 
-	public function getOrderList(){
+//打印日志函数--ci
+    function logResultmy($word = '')
+    {
+        $dir = $this->config->item('data_log_path') . 'MyOrder_Updorder_tadm';
+        if (!file_exists($dir)) {
+            mkdir($dir, '0777', true);
+        }
+        $fileName = $dir . '/' . 'MyOrder_Updorder_tadm' . '.txt';
+        $fp = fopen($fileName, "a");
+        flock($fp, LOCK_EX);
+        fwrite($fp, "执行日期：" . strftime("%Y-%m-%d~%H:%M:%S", time()) . "\r\n" . $word . "\r\n");
+        flock($fp, LOCK_UN);
+        fclose($fp);
+    }
+
+
+    public function getOrderList(){
+        $this->logResultmy(json_encode('getOrderList'));
+        $this->logResultmy(json_encode($this->input->post()));
+
 		$this->checkPurview('orderList');
 		extract($this->input->post());
+
+        $this->logResultmy(json_encode('---arr-Begin---'));
+        $this->logResultmy(json_encode($arr));
 
 		if($OrderStatus)$arr['OrderStatus'] = $OrderStatus;
 		if($OrderStatus==1){$arr['OrderStatus'] = '[0,1]';}
@@ -29,18 +51,36 @@ class Order extends MY_Controller {
 		if($ShopName)$arr['ShopName'] = "%*".$ShopName."*%";
 		if($ProductType>0)$arr['ProductInfo.ProductType'] = $ProductType;
 
+        $this->logResultmy(json_encode('---CityName---'));
+        $this->logResultmy(json_encode($CityName));
+
+        $this->logResultmy(json_encode('---arr-Begin2---'));
+        $this->logResultmy(json_encode($arr));
+
 		$sel = array('OrderId','OrderType','Type','OrderStatus','ProductInfo.ProductName','DeliveryInfo','ProductCount','ProductFee','Remark','CreatTime','UserId','CityName','CityCode','TeamId','ProductList','ShopName');
 
 		$orderList = $this->order_model->getOrderList($arr,array('OrderId','DESC'),array($perpage,($page-1)*$perpage),$sel);
-		$res['OrderList'] = $orderList['List'];
+
+        $this->logResultmy(json_encode('---orderList---'));
+        $this->logResultmy(json_encode($orderList));
+
+        $res['OrderList'] = $orderList['List'];
 		$res['Count'] = $orderList['Count'];
 		$res['PerPage'] = $orderList['Limit'];
+
+        $this->logResultmy(json_encode('---res---'));
+        $this->logResultmy(json_encode($res));
+
 		$this->returnJson($res);
 	}
 
 	public function Updorder(){
+        $this->logResultmy(json_encode('---Updorder---'));
+
 		$this->checkPurview('orderUpd');
 		extract($this->input->post());
+
+        $this->logResultmy(json_encode('---Updorder---\n'.$this->input->post()));
 
 		$order = $this->order_model->getOrderInfo($id);
 
@@ -62,6 +102,9 @@ class Order extends MY_Controller {
 
 		if($OrderStatus==5 && $this->_UserType==1){
 			$arr['OrderStatus'] = $OrderStatus;
+            //订单已完成的时间(确认收货时间)
+            $arr['RealReceiptTime'] = time();
+            $this->logResultmy(json_encode('---Updorder-RealReceiptTime---'));
 		}
 
 		$where = array(
@@ -71,11 +114,17 @@ class Order extends MY_Controller {
 		if($this->_UserType==3){
 			$where['ShopId'] = $this->_ShopRealId;
 		}
-		
+        $this->logResultmy(json_encode('---Updorder-arr---'));
+        $this->logResultmy(json_encode($arr));
+
+        $this->logResultmy(json_encode('---Updorder-where---'));
+        $this->logResultmy(json_encode($where));
+
 		$this->order_model->updOrder($where,$arr);
 		$this->returnJson($res);
 	}
 
+	//退款
 	public function Refundorder(){
 		$this->checkPurview('orderRefund');
 		extract($this->input->post());

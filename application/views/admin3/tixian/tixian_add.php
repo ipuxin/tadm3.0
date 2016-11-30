@@ -94,6 +94,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         background-color: #0099cc;
         color: #fff;
     }
+    .tixianNum {
+        width: 200px;
+        color: #555555;
+        vertical-align: middle;
+        background-color: #ffffff;
+        background-image: none;
+        border: 1px solid #cccccc;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        padding: 6px 12px;
+        height: 32px;
+        box-sizing: border-box;
+    }
 </style>
 <body>
 <section>
@@ -101,35 +116,29 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <form action="/tixian/addTixian" style="margin-top:16px;">
         <line>
             <span class="title">累计销售额度：</span>
-            <span><?= $shop['Balance'] ?></span>
-                        <span>$shop['Balance']</span>
+            <span><?= round($shop['Balance'],2) ?></span>
         </line>
         <line>
             <span class="title">累计可提现额度：</span>
-            <span><?= $shop['BalanceReal'] ?></span>
-                        <span>$shop['BalanceReal']</span>
+            <span><?= round($shop['BalanceReal'],2) ?></span>
         </line>
         <line>
             <span class="title">累计申请提现：</span>
-            <span><?= $shop['totalBalanceApply'] ?></span>
-                        <span>$shop['totalBalanceApply']</span>
+            <span><?= round($shop['totalBalanceApply'],2) ?></span>
         </line>
         <line>
             <span class="title">累计实际到账：</span>
-            <span><?= $shop['totalBalanceReal'] ?></span>
-                        <span>$shop['totalBalanceReal']</span>
+            <span><?= round($shop['totalBalanceReal'],2) ?></span>
         </line>
         <line>
             <!--累计销售额度-已提现-->
             <span class="title">余额：</span>
-            <span><?= $shop['Balance'] - $shop['totalBalanceApply'] ?></span>
-                        <span> $shop['Balance'] - $shop['totalBalanceApply']</span>
+            <span><?= round($shop['Balance'] - $shop['totalBalanceApply'],2) ?></span>
         </line>
         <line>
             <!--累计可提现额度-已提现-->
             <span class="title">可提现余额：</span>
-            <span><?= $shop['BalanceReal'] - $shop['totalBalanceApply'] ?></span>
-                        <span>$shop['BalanceReal'] - $shop['totalBalanceApply']</span>
+            <span><?= round($shop['BalanceReal'] - $shop['totalBalanceApply'],2) ?></span>
         </line>
         <line>
             <span class="title">支付宝账号：</span>
@@ -137,7 +146,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </line>
         <line>
             <span class="title">提现金额：</span>
-            <input type="text" name="Amount" value="">
+            <?php
+            //规定最大提现的正整数值
+            $maxTX = intval($shop['BalanceReal'] - $shop['totalBalanceApply']);
+            ?>
+            <input class="tixianNum" type="number" name="Amount" min="1" max="<?= $maxTX ?>" step="1" value="">
             <span style="color:#999;">（提现手续费<?= $this->config->item('shop_charge_now') * 100; ?>%）</span>
         </line>
 
